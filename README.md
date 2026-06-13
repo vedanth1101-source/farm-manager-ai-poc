@@ -22,6 +22,14 @@ Farm Manager AI lets farm operators ask natural language questions about their l
 
 ---
 
+## 🎬 Demo
+
+<video src="demo.mp4" controls width="100%"></video>
+
+> Click the video above to see the full demo — from question input to generated SQL and plain-English answer.
+
+---
+
 ## 🏗️ Architecture
 
 ```
@@ -158,6 +166,14 @@ The SQLite database contains 5 tables populated with realistic sample data:
 | `expenses` | Farm expense ledger by category |
 
 See [`backend/src/main/resources/database/schema.sql`](backend/src/main/resources/database/schema.sql) and [`seed.sql`](backend/src/main/resources/database/seed.sql) for full definitions.
+
+---
+
+## 📝 Implementation Note
+
+> **Note:** This version uses **template-based query matching** — each of the 10 supported questions is matched against a pre-compiled regex and routed to a hand-written SQL query.
+>
+> The natural next step is swapping in a local model via **Ollama** for true natural language understanding — which is what you described. That upgrade replaces the regex layer with an LLM that can generate SQL dynamically, while keeping the same Spring Boot + SQLite backend intact.
 
 ---
 
