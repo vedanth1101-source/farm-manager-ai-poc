@@ -1,0 +1,23 @@
+/* Global styles */
+/* Use system fonts for clean look */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background-color: #f4f6fc;
+}
+
+.app-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+}

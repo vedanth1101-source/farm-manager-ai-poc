@@ -1,0 +1,103 @@
+/* App specific styles */
+
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: .2em;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.question-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.ask-button {
+  padding: 0.7rem 1.5rem;
+  margin-left: .5rem;
+  background-color: #2e8b57; /* deep green */
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ask-button:hover:not(:disabled) {
+  background-color: #276e4a;
+}
+
+.ask-button:disabled {
+  background-color: #9acfb1;
+  cursor: not-allowed;
+}
+
+.loading-label {
+  margin-top: .5rem;
+  color: #777;
+}
+
+.card {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+}
+
+.sql-card code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-all;
+  font-family: monospace;
+  background: #eef0f3;
+  border-radius: 6px;
+  padding: .8rem;
+  overflow-x: auto;
+}
+
+.answer-card {
+  background: #e7faf1;
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 1.3rem;
+  color: #0f6354;
+}
+
+.error-box {
+  background: #ffecec;
+  border-left: 4px solid #ca4e50;
+  padding: .8rem;
+  margin-top: 1rem;
+  border-radius: 6px;
+  color: #a71d2a;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-bottom: 1.2rem;
+}
+
+.chip {
+  background: #e5ffe5;
+  color: #1d7f25;
+  padding: .4rem .9rem;
+  border-radius: 16px;
+  font-size: .85rem;
+  cursor: pointer;
+  user-select: none;
+}
+.chip:hover {
+  filter: brightness(0.95);
+}
