@@ -1,51 +1,21 @@
-# Screenshot Index
+# Screenshot Index — Farm Manager AI
 
-- Filename: question_1.png
-  Question asked: How many eggs did I collect last week?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
+This document indexes all valid screenshots used to demonstrate the features of the Farm Manager AI project.
 
-- Filename: question_2.png
-  Question asked: How many eggs did I collect this month?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
+---
 
-- Filename: question_3.png
-  Question asked: Which chickens produced the most eggs?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
+### 1. `screenshots/ai-query.png`
+- **Purpose:** Demonstrates the primary user interface processing a natural language query in real-time.
+- **Feature Demonstrated:** Local AI natural language query processing. Shows the query input bar, sample query chips, the generated SQL display, and the computed plain-text answer card, marked with the green **`[AI Mode]`** badge.
 
-- Filename: question_4.png
-  Question asked: What was my feed expense last month?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
+### 2. `screenshots/list-animals.png`
+- **Purpose:** Demonstrates the dynamic result rendering of multi-record query results.
+- **Feature Demonstrated:** Zebra-striped HTML table rendering. Shows the user requesting a multi-row query, and the React frontend formatting the resulting dataset in a responsive, border-aligned table instead of raw text.
 
-- Filename: question_5.png
-  Question asked: What were my total expenses last month?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
+### 3. `screenshots/template-fallback.png`
+- **Purpose:** Demonstrates how the application handles failures or offline states of the local AI service.
+- **Feature Demonstrated:** Deterministic template fallback mode. Shows the system running when Ollama is offline or times out; the backend catches the connection error, triggers a regex template match, and returns the result with a blue **`[Template Mode]`** badge.
 
-- Filename: question_6.png
-  Question asked: Which rabbits gained the most weight?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
-
-- Filename: question_7.png
-  Question asked: Show health incidents in the last 30 days.
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
-
-- Filename: question_8.png
-  Question asked: Which animals need attention?
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
-
-- Filename: question_9.png
-  Question asked: Show milk production this month.
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
-
-- Filename: question_10.png
-  Question asked: Compare egg production month-over-month.
-  Mode: ai
-  Purpose of screenshot: Regression test output visual confirmation
+### 4. `screenshots/telemetry.png`
+- **Purpose:** Demonstrates the real-time telemetry monitoring of backend queries.
+- **Feature Demonstrated:** REST telemetry endpoint `/api/telemetry` outputting JSON metric counters (`aiSuccessCount`, `templateFallbackCount`, `sqlFailureCount`).

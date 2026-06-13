@@ -1,96 +1,192 @@
 # Farm Manager AI
 
-A local-first, AI-powered natural language interface for structured farm databases. 
+A local-first, AI-powered natural language interface for structured farm databases. This application allows farm operators to query livestock, crop, equipment, and financial databases in plain English and receive real-time answers along with the generated SQL. It executes entirely offline, ensuring complete data privacy and reliability in rural locations with poor connectivity.
 
 ---
 
-## 1. What This Is
-**Farm Manager AI** is a local-first application that allows farm operators to ask natural language questions about their farm operations (livestock, crops, equipment, finances) and translates those questions dynamically into executable SQLite queries. 
+## Demo
 
-The application runs entirely offline by leveraging a local **Ollama** service running the **`qwen2.5-coder:7b`** model, ensuring complete data privacy and zero dependence on cloud LLM APIs.
-
----
-
-## 2. Features
-- **Natural Language Farm Queries:** Ask questions like "How many eggs did I collect last week?" or "Which rabbits gained the most weight?" in plain English.
-- **AI-Generated SQL:** Dynamically generates SQLite queries based on cached DB schemas.
-- **Strict SQL Safety Validation:** Blocks malicious operations (`DROP`, `DELETE`, `UPDATE`, `INSERT`, etc.) and enforces read-only `SELECT` / `WITH` access.
-- **Template Fallback Mode:** Seamlessly falls back to a regex-based matching system if the local Ollama instance is offline or fails to generate valid SQL.
-- **Structured Data Rendering:** Formats single metrics as scalar cards and multi-row datasets as clean, interactive HTML tables.
-- **In-Memory Telemetry:** Monitors AI successes, template fallbacks, and SQL syntax errors at `/api/telemetry`.
-- **Dynamic Schema Loading:** Caches `schema.sql` at startup to allow changes to propagate without recompiling code.
+Watch the Farm Manager AI demonstration video:
+![Farm Manager AI Demo](demo.mp4)
 
 ---
 
-## 3. Architecture
+## Screenshots
+
+### 1. Natural Language Query Interface (AI Mode)
+The interface is clean and responsive. Users can type questions or select sample queries.
+![Natural Language Query Interface](screenshots/ai-query.png)
+
+### 2. Tabular Result Rendering
+Multi-record datasets are rendered in a clean, borders-aligned HTML table with zebra striping.
+![Tabular Result Rendering](screenshots/list-animals.png)
+
+### 3. Template Fallback Mode
+If Ollama is offline or fails, the application falls back to a deterministic, regex-based matching engine.
+![Template Fallback Mode](screenshots/template-fallback.png)
+
+### 4. Telemetry API Endpoint
+In-memory performance metrics (successes, fallbacks, and failures) are tracked in real-time.
+![Telemetry API Endpoint](screenshots/telemetry.png)
+
+---
+
+## What It Does
+
+Farm Manager AI translates natural language questions into database queries through a secure execution pipeline:
+
 ```
-  [ React Frontend ]
-         │
-         ▼ (HTTP POST /api/query)
-  [ Spring Boot Backend ]
-   ┌─────┴────────────────────────┐
-   ▼                              ▼
-[ Ollama (qwen2.5-coder:7b) ]   [ SQLite Database (farm_manager.db) ]
-   (NL -> SQL query)               (Schema & Seeding Data)
+[ Question ]
+     │
+     ▼
+[ Ollama (qwen2.5-coder:7b) ] ──(Generates Raw SQL)
+     │
+     ▼
+[ SQL Safety Validation ] ──────(Enforces Read-Only SELECT/WITH; Blocks DROP, DELETE, etc.)
+     │
+     ▼
+[ SQLite Database ] ────────────(Executes Safe SQL)
+     │
+     ▼
+[ Result Formatting ] ──────────(Outputs HTML Table for multi-row or scalar card for single value)
 ```
 
 ---
 
-## 4. Screenshots
+## Features
 
-### 4.1 Natural Language Query Interface
-*(Placeholder: Insert screenshot showing App UI, chips, input bar, and buttons)*
-
-### 4.2 AI Mode Table Rendering
-*(Placeholder: Insert screenshot showing a multi-row query result displayed in a clean, borders-aligned HTML table)*
-
-### 4.3 Template Fallback Badge
-*(Placeholder: Insert screenshot showing the Blue [Template Mode] badge and SQL query when Ollama is offline)*
+- **Local AI Integration:** Powered by a local **Ollama** instance running the **`qwen2.5-coder:7b`** model.
+- **Dynamic SQL Generation:** Translates complex queries without cloud API calls, keeping all data on-premise.
+- **Strict SQL Safety Interceptor:** Rejects write/structural SQL commands (`DROP`, `DELETE`, `UPDATE`, `INSERT`, etc.) and enforces read-only access.
+- **Zebra-Striped Table Rendering:** Automatically renders multi-record results in responsive HTML tables and single-cell responses as formatted metric cards.
+- **Deterministic Fallback Engine:** Bypasses Ollama and uses a regex pattern-matcher if the LLM is offline or times out.
+- **In-Memory Telemetry:** Exposes metrics (`aiSuccessCount`, `templateFallbackCount`, `sqlFailureCount`) on a REST endpoint.
+- **Dynamic Schema Cache:** Loads `schema.sql` at startup to inject fresh context into the LLM prompt without recompiling code.
+- **Modern Stack:** Spring Boot 3.2.5 (Java 21), React 18, and SQLite.
 
 ---
 
-## 5. Running Locally
+## Architecture
 
-### 5.1 Prerequisites
-- **Java 21** (JDK installed and added to PATH)
-- **Node.js** (v18+ recommended)
-- **Maven** (for building the Java backend)
-- **Ollama** (installed locally)
+The system features a decoupled backend architecture where template-matching and AI services are completely separated:
 
-### 5.2 Step 1: Start Ollama & Load the Model
-1. Start the Ollama application.
-2. In your terminal, pull the required model:
+```
+                  ┌─────────────────────────┐
+                  │     React Frontend      │
+                  └────────────┬────────────┘
+                               │
+                      POST /api/query
+                               │
+                               ▼
+                  ┌─────────────────────────┐
+                  │  QueryController (Java) │
+                  └────────────┬────────────┘
+                               │
+                 ┌─────────────┴─────────────┐
+                 │                           │
+                 ▼                           ▼
+      ┌─────────────────────┐     ┌─────────────────────┐
+      │  OllamaQueryService │     │QueryTemplateService │
+      │      (AI Mode)      │     │  (Template Fallback)│
+      └──────────┬──────────┘     └──────────┬──────────┘
+                 │                           │
+         [Ollama Local API]           [Regex Patterns]
+                 │                           │
+                 ▼                           │
+      ┌─────────────────────┐                │
+      │ SQL Safety Filter   │                │
+      └──────────┬──────────┘                │
+                 │                           │
+                 └─────────────┬─────────────┘
+                               │
+                               ▼
+                  ┌─────────────────────────┐
+                  │ JdbcTemplate Execution  │
+                  └────────────┬────────────┘
+                               │
+                               ▼
+                  ┌─────────────────────────┐
+                  │ SQLite (farm_manager.db)│
+                  └─────────────────────────┘
+```
+
+---
+
+## Execution Modes
+
+### 1. AI Mode
+- **Triggers:** Automatically on user question submission if Ollama is online.
+- **Process:** The question is combined with the cached database schema and passed to `qwen2.5-coder:7b`. The generated SQL is validated, executed against SQLite, and returned to the UI with a green **`[AI Mode]`** badge.
+
+### 2. Template Mode (Fallback)
+- **Triggers:** If Ollama is offline, times out (15s), or generates invalid/unsafe SQL.
+- **Process:** The controller catches the exception, increments the telemetry fallback counter, and queries the `QueryTemplateService` for a deterministic regex match. The result is displayed in the UI with a blue **`[Template Mode]`** badge.
+
+---
+
+## API Endpoints
+
+The Spring Boot backend exposes the following REST endpoints on port `8080`:
+
+| Endpoint | Method | Request Body / Parameters | Description |
+| :--- | :--- | :--- | :--- |
+| `/api/query` | `POST` | `{ "question": "string" }` | Processes the query, trying AI mode first, then template fallback. Returns `QueryResponse` DTO. |
+| `/api/questions` | `GET` | *None* | Returns the list of 10 standard queries pre-indexed for the template fallback. |
+| `/api/telemetry` | `GET` | *None* | Returns a JSON map of current execution counters (`aiSuccessCount`, `templateFallbackCount`, `sqlFailureCount`). |
+
+---
+
+## Running Locally
+
+### 1. Prerequisites
+- **Java 21 (JDK)**
+- **Node.js (v18+)**
+- **Maven**
+- **Ollama**
+
+### 2. Step 1: Start Ollama and Load Model
+1. Run Ollama on your machine.
+2. In your terminal, fetch the model:
    ```bash
    ollama pull qwen2.5-coder:7b
    ```
 
-### 5.3 Step 2: Run the Backend
-1. Navigate to the `backend` directory:
+### 3. Step 2: Start the Spring Boot Backend
+1. Open a terminal and navigate to the backend directory:
    ```bash
    cd backend
    ```
-2. Build and run the Spring Boot application:
+2. Build and start the server:
    ```bash
    mvn clean install
    mvn spring-boot:run
    ```
-   *The server will initialize the SQLite database using `schema.sql`, seed mock data, and start on `http://localhost:8080`.*
+   *The backend will automatically initialize a local SQLite database (`farm_manager.db`), run schema seeding, and start on `http://localhost:8080`.*
 
-### 5.4 Step 3: Run the Frontend
-1. Navigate to the `frontend` directory:
+### 4. Step 3: Start the React Frontend
+1. Open another terminal and navigate to the frontend directory:
    ```bash
-   cd ../frontend
+   cd frontend
    ```
-2. Install dependencies and start the React app:
+2. Install dependencies and start:
    ```bash
    npm install
    npm start
    ```
-   *The client application will open automatically on `http://localhost:3000`.*
+   *The React app will open on `http://localhost:3000`.*
 
 ---
 
-## 6. Future Improvements
-- **Extended Read-Only Dialects:** Expand SQL validation rules for advanced CTE (Common Table Expressions) and complex window functions.
-- **Dynamic Telemetry Reset:** Expose a POST `/api/telemetry/reset` endpoint to clear session stats.
-- **Multiple Local Models:** Allow the user to toggle between `qwen2.5-coder:7b` and lighter models like `qwen2.5-coder:1.5b` or `gemma4:latest` for resource-constrained hardware.
+## Future Improvements
+
+- **Fine-Tuned Safety Parsing:** Upgrade SQL parsing to use a proper SQL parser AST library rather than word-boundary regex patterns to eliminate any potential edge cases.
+- **Dynamic Telemetry Resets:** Add a `/api/telemetry/reset` endpoint to allow clearing counters during demo sessions.
+- **Multi-Model Toggling:** Expose a dropdown in the UI to switch between models (e.g. `qwen2.5-coder:1.5b` for low-resource environments and `qwen2.5-coder:7b`).
+
+---
+
+## Lessons Learned
+
+1. **Decouple Legacy and New Systems:** Keeping `QueryTemplateService` completely unmodified while introducing `OllamaQueryService` ensured that the fallback system remained rock-solid and bugs in the AI integration didn't break basic app functionality.
+2. **Defensive AI Engineering:** Large Language Models are non-deterministic and prone to prompt injections. Adding a strict SQL safety filter before running code against the database is an absolute requirement when exposing SQL execution.
+3. **Optimize Schema Contexts:** Passing the database schema as a single cached string loaded once at startup minimizes system overhead and ensures prompts remain contextually relevant without repetitive file reads.
