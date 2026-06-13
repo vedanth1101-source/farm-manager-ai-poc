@@ -181,3 +181,17 @@ The project is:
 - ✅ **Reviewed** — strengths and gaps documented in REPOSITORY_REVIEW.md
 - ✅ **Documented** — README, schema, demo script, all reports
 - ✅ **Ready to send to Matt** — OUTREACH_PACKAGE.md contains the message
+
+---
+
+## Portfolio Readiness Score: 9/10
+
+### Would I show this to:
+- **Founder? YES**
+- **Recruiter? YES**
+- **Hiring Manager? YES**
+
+### Why?
+- **Founder:** A founder needs to know you can ship functioning AI features fast, cost-effectively, and securely. Showing a clean, local-first AI Natural Language SQL interface (using Ollama to avoid cloud billing) with a secure fallback and validation mechanism demonstrates rapid prototyping ability, strong product focus, and practical AI application design.
+- **Recruiter:** Recruiters look for keywords, clean code presentation, visual demonstrations, and professional repository hygiene. The clear, visual layout of the `README.md`, combined with a fully cleaned-up git history (removing 38k+ junk node_modules/target files), ensures the project looks professional and immediate.
+- **Hiring Manager:** A hiring manager checks for engineering rigour: architecture patterns, safety boundaries, and documentation quality. The decoupled architecture (leaving `QueryTemplateService` untouched and creating `OllamaQueryService`), the strict regex SQL safety interceptor (blocking destructive actions), the dynamic schema loading, and the formal `ARCHITECTURE_DECISIONS.md` and `REUSABILITY_REPORT.md` files prove structured, long-term engineering thinking.

@@ -1,182 +1,96 @@
-# 🌾 Farm Manager AI
+# Farm Manager AI
 
-[![Java](https://img.shields.io/badge/Java-21-orange?logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.5-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
-[![SQLite](https://img.shields.io/badge/SQLite-3.45-lightblue?logo=sqlite)](https://www.sqlite.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-> **A proof-of-concept AI farm management assistant** that translates plain-English questions into SQL queries and returns human-readable answers — built for Manger, a livestock and farm productivity platform.
+A local-first, AI-powered natural language interface for structured farm databases. 
 
 ---
 
-## 🎯 What It Does
+## 1. What This Is
+**Farm Manager AI** is a local-first application that allows farm operators to ask natural language questions about their farm operations (livestock, crops, equipment, finances) and translates those questions dynamically into executable SQLite queries. 
 
-Farm Manager AI lets farm operators ask natural language questions about their livestock, eggs, milk, health records, and expenses. The Spring Boot backend matches the question against 10 pre-built templates, executes the appropriate SQLite query, and returns both the generated SQL and a plain-English answer.
-
-```
-"How many eggs did I collect last week?"
-→  SQL: SELECT SUM(quantity) AS total_eggs FROM egg_collection WHERE ...
-→  Answer: 81 eggs
-```
+The application runs entirely offline by leveraging a local **Ollama** service running the **`qwen2.5-coder:7b`** model, ensuring complete data privacy and zero dependence on cloud LLM APIs.
 
 ---
 
-## 🎬 Demo
-
-<video src="demo.mp4" controls width="100%"></video>
-
-> Click the video above to see the full demo — from question input to generated SQL and plain-English answer.
+## 2. Features
+- **Natural Language Farm Queries:** Ask questions like "How many eggs did I collect last week?" or "Which rabbits gained the most weight?" in plain English.
+- **AI-Generated SQL:** Dynamically generates SQLite queries based on cached DB schemas.
+- **Strict SQL Safety Validation:** Blocks malicious operations (`DROP`, `DELETE`, `UPDATE`, `INSERT`, etc.) and enforces read-only `SELECT` / `WITH` access.
+- **Template Fallback Mode:** Seamlessly falls back to a regex-based matching system if the local Ollama instance is offline or fails to generate valid SQL.
+- **Structured Data Rendering:** Formats single metrics as scalar cards and multi-row datasets as clean, interactive HTML tables.
+- **In-Memory Telemetry:** Monitors AI successes, template fallbacks, and SQL syntax errors at `/api/telemetry`.
+- **Dynamic Schema Loading:** Caches `schema.sql` at startup to allow changes to propagate without recompiling code.
 
 ---
 
-## 🏗️ Architecture
-
+## 3. Architecture
 ```
-farm-manager-ai/
-├── backend/                          # Java 21 / Spring Boot 3.2.5
-│   ├── pom.xml
-│   └── src/main/
-│       ├── java/com/farmmanager/
-│       │   ├── FarmManagerApplication.java   # Entry point
-│       │   ├── controller/
-│       │   │   └── QueryController.java      # REST endpoints
-│       │   ├── dto/
-│       │   │   └── QueryRequest.java         # Request model
-│       │   └── service/
-│       │       ├── QueryTemplateService.java # NL→SQL matching engine
-│       │       ├── DatabaseInitializer.java  # SQLite setup
-│       │       └── DbSeedingService.java     # Seed data loader
-│       └── resources/
-│           ├── application.properties
-│           └── database/
-│               ├── schema.sql                # Table definitions
-│               └── seed.sql                 # Sample farm data
-└── frontend/                         # React 18 / Create React App
-    ├── package.json
-    └── src/
-        ├── App.js                    # Main query UI component
-        ├── services/api.js           # Axios API client
-        └── index.js
+  [ React Frontend ]
+         │
+         ▼ (HTTP POST /api/query)
+  [ Spring Boot Backend ]
+   ┌─────┴────────────────────────┐
+   ▼                              ▼
+[ Ollama (qwen2.5-coder:7b) ]   [ SQLite Database (farm_manager.db) ]
+   (NL -> SQL query)               (Schema & Seeding Data)
 ```
 
 ---
 
-## 🔌 API Endpoints
+## 4. Screenshots
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/questions` | Returns the 10 supported natural-language questions |
-| `POST` | `/api/query` | Accepts `{ "question": "..." }`, returns SQL + answer |
+### 4.1 Natural Language Query Interface
+*(Placeholder: Insert screenshot showing App UI, chips, input bar, and buttons)*
 
-**POST `/api/query` — Sample Response:**
-```json
-{
-  "question": "How many eggs did I collect last week?",
-  "sql": "SELECT SUM(quantity) AS total_eggs FROM egg_collection WHERE collection_date >= date('now', '-7 days')",
-  "answer": "81 eggs",
-  "columns": ["total_eggs"],
-  "rows": [{ "total_eggs": 81 }]
-}
-```
+### 4.2 AI Mode Table Rendering
+*(Placeholder: Insert screenshot showing a multi-row query result displayed in a clean, borders-aligned HTML table)*
+
+### 4.3 Template Fallback Badge
+*(Placeholder: Insert screenshot showing the Blue [Template Mode] badge and SQL query when Ollama is offline)*
 
 ---
 
-## 💬 Supported Questions
+## 5. Running Locally
 
-The engine matches **10 pre-built templates** using regex pattern matching:
+### 5.1 Prerequisites
+- **Java 21** (JDK installed and added to PATH)
+- **Node.js** (v18+ recommended)
+- **Maven** (for building the Java backend)
+- **Ollama** (installed locally)
 
-1. How many eggs did I collect **last week**?
-2. How many eggs did I collect **this month**?
-3. Which **chickens** produced the most eggs?
-4. What was my **feed expense** last month?
-5. What were my **total expenses** last month?
-6. Which **rabbits** gained the most weight?
-7. Show **health incidents** in the last 30 days.
-8. Which animals **need attention**?
-9. Show **milk production** this month.
-10. Compare **egg production month-over-month**.
+### 5.2 Step 1: Start Ollama & Load the Model
+1. Start the Ollama application.
+2. In your terminal, pull the required model:
+   ```bash
+   ollama pull qwen2.5-coder:7b
+   ```
 
----
+### 5.3 Step 2: Run the Backend
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Build and run the Spring Boot application:
+   ```bash
+   mvn clean install
+   mvn spring-boot:run
+   ```
+   *The server will initialize the SQLite database using `schema.sql`, seed mock data, and start on `http://localhost:8080`.*
 
-## ⚙️ Prerequisites
-
-| Tool | Version |
-|------|---------|
-| JDK | 21+ |
-| Maven | 3.8+ (or use included `mvnw`) |
-| Node.js | 18+ |
-| npm | 9+ |
-
----
-
-## 🚀 Setup & Running
-
-### 1. Start the Backend
-
-```bash
-cd backend
-./mvnw spring-boot:run
-# or: mvn spring-boot:run
-# Backend runs on http://localhost:8080
-```
-
-The backend auto-creates and seeds a SQLite database (`farm_manager.db`) on first run.
-
-### 2. Start the Frontend
-
-```bash
-cd frontend
-npm install        # first-time only
-npm start          # opens http://localhost:3000
-```
-
-### 3. Use the UI
-
-Open `http://localhost:3000`, type a question (or click a suggestion), and click **Ask**.
+### 5.4 Step 3: Run the Frontend
+1. Navigate to the `frontend` directory:
+   ```bash
+   cd ../frontend
+   ```
+2. Install dependencies and start the React app:
+   ```bash
+   npm install
+   npm start
+   ```
+   *The client application will open automatically on `http://localhost:3000`.*
 
 ---
 
-## 🏗️ Build for Production
-
-```bash
-# Backend JAR
-cd backend
-mvn package
-java -jar target/farm-manager-backend-1.0.0.jar
-
-# Frontend static bundle
-cd frontend
-npm run build
-# Serve the ./build directory with any static file server
-```
-
----
-
-## 🗄️ Database Schema
-
-The SQLite database contains 5 tables populated with realistic sample data:
-
-| Table | Description |
-|-------|-------------|
-| `animals` | Chickens, cows, rabbits with weight tracking |
-| `egg_collection` | Daily egg counts per animal |
-| `milk_production` | Daily milk yield per cow (gallons) |
-| `health_records` | Diagnoses, treatments, costs per animal |
-| `expenses` | Farm expense ledger by category |
-
-See [`backend/src/main/resources/database/schema.sql`](backend/src/main/resources/database/schema.sql) and [`seed.sql`](backend/src/main/resources/database/seed.sql) for full definitions.
-
----
-
-## 📝 Implementation Note
-
-> **Note:** This version uses **template-based query matching** — each of the 10 supported questions is matched against a pre-compiled regex and routed to a hand-written SQL query.
->
-> The natural next step is swapping in a local model via **Ollama** for true natural language understanding — which is what you described. That upgrade replaces the regex layer with an LLM that can generate SQL dynamically, while keeping the same Spring Boot + SQLite backend intact.
-
----
-
-## 📄 License
-
-MIT — see [LICENSE](LICENSE) for details.
+## 6. Future Improvements
+- **Extended Read-Only Dialects:** Expand SQL validation rules for advanced CTE (Common Table Expressions) and complex window functions.
+- **Dynamic Telemetry Reset:** Expose a POST `/api/telemetry/reset` endpoint to clear session stats.
+- **Multiple Local Models:** Allow the user to toggle between `qwen2.5-coder:7b` and lighter models like `qwen2.5-coder:1.5b` or `gemma4:latest` for resource-constrained hardware.
