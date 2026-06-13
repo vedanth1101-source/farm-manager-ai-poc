@@ -1,0 +1,7 @@
+{
+  "clientName": "CLIENT_NAME",
+  "databaseType": "sqlite",
+  "ollamaModel": "qwen2.5-coder:7b",
+  "ollamaUrl": "http://localhost:11434",
+  "maxRows": 100
+}
