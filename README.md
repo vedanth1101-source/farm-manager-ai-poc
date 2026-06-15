@@ -62,7 +62,7 @@ Farm Manager AI translates natural language questions into database queries thro
 - **Zebra-Striped Table Rendering:** Automatically renders multi-record results in responsive HTML tables and single-cell responses as formatted metric cards.
 - **Deterministic Fallback Engine:** Bypasses Ollama and uses a regex pattern-matcher if the LLM is offline or times out.
 - **In-Memory Telemetry:** Exposes metrics (`aiSuccessCount`, `templateFallbackCount`, `sqlFailureCount`) on a REST endpoint.
-- **Dynamic Schema Cache:** Loads `schema.sql` at startup to inject fresh context into the LLM prompt without recompiling code.
+- **Dynamic Schema Cache:** Loads [schema.sql](backend/src/main/resources/database/schema.sql) at startup to inject fresh context into the LLM prompt without recompiling code.
 - **Modern Stack:** Spring Boot 3.2.5 (Java 21), React 18, and SQLite.
 
 ---
@@ -137,6 +137,22 @@ The Spring Boot backend exposes the following REST endpoints on port `8080`:
 
 ---
 
+## 🗄️ Database Schema
+
+The SQLite database contains 5 tables populated with realistic sample data:
+
+| Table | Description |
+| :--- | :--- |
+| `animals` | Chickens, cows, rabbits with weight tracking |
+| `egg_collection` | Daily egg counts per animal |
+| `milk_production` | Daily milk yield per cow (gallons) |
+| `health_records` | Diagnoses, treatments, costs per animal |
+| `expenses` | Farm expense ledger by category |
+
+See [schema.sql](backend/src/main/resources/database/schema.sql) and [seed.sql](backend/src/main/resources/database/seed.sql) for full definitions.
+
+---
+
 ## Running Locally
 
 ### 1. Prerequisites
@@ -191,3 +207,9 @@ The Spring Boot backend exposes the following REST endpoints on port `8080`:
 1. **Decouple Legacy and New Systems:** Keeping `QueryTemplateService` completely unmodified while introducing `OllamaQueryService` ensured that the fallback system remained rock-solid and bugs in the AI integration didn't break basic app functionality.
 2. **Defensive AI Engineering:** Large Language Models are non-deterministic and prone to prompt injections. Adding a strict SQL safety filter before running code against the database is an absolute requirement when exposing SQL execution.
 3. **Optimize Schema Contexts:** Passing the database schema as a single cached string loaded once at startup minimizes system overhead and ensures prompts remain contextually relevant without repetitive file reads.
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](LICENSE) for details.
