@@ -28,14 +28,16 @@ public class OllamaQueryService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
+    private final KnowledgeBaseService knowledgeBaseService;
 
     private String schema = "";
     private static final String OLLAMA_URL = "http://localhost:11434/api/generate";
     private static final String MODEL_NAME = "qwen2.5-coder:7b";
 
-    public OllamaQueryService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public OllamaQueryService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper, KnowledgeBaseService knowledgeBaseService) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
+        this.knowledgeBaseService = knowledgeBaseService;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
@@ -140,7 +142,10 @@ public class OllamaQueryService {
     }
 
     private String buildPrompt(String question) {
+        String farmSoul = knowledgeBaseService.getFarmSoul();
         return "You are a SQLite SQL generator.\n\n" +
+                "Farm Profile & Identity:\n" +
+                farmSoul + "\n\n" +
                 "Schema:\n" +
                 schema + "\n\n" +
                 "Rules:\n" +

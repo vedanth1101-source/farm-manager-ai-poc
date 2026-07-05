@@ -74,3 +74,11 @@ VALUES
 ('Big Red Tractor', 'Tractor', '2020-03-01', '2023-11-01', 'Active'),
 ('Combine Harvester', 'Harvester', '2021-05-10', '2023-09-15', 'Active'),
 ('Corn Planter', 'Planter', '2020-03-01', '2023-04-20', 'Active');
+
+-- Goals (Mission Control)
+INSERT INTO goals (name, target_value, sql_metric_query, target_date, status)
+VALUES
+('Collect 100 Eggs this Month', 100.0, 'SELECT COALESCE(SUM(quantity), 0) FROM egg_collection WHERE collection_date >= date(''now'', ''start of month'')', date('now', 'start of month', '+1 month', '-1 day'), 'Active'),
+('Limit Monthly Expenses to $1500', 1500.0, 'SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type=''Expense'' AND transaction_date >= date(''now'', ''start of month'')', date('now', 'start of month', '+1 month', '-1 day'), 'Active'),
+('Achieve 50 Gallons of Milk Yield', 50.0, 'SELECT COALESCE(SUM(yield_gallons), 0) FROM milk_production WHERE milking_date >= date(''now'', ''start of month'')', date('now', 'start of month', '+1 month', '-1 day'), 'Active');
+

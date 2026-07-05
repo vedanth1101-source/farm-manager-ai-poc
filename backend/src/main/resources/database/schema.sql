@@ -96,3 +96,15 @@ CREATE TABLE IF NOT EXISTS health_records (
     cost REAL DEFAULT 0.0,
     status TEXT DEFAULT 'Resolved' -- e.g., Active, Resolved
 );
+
+-- Goals Table (Mission Control)
+CREATE TABLE IF NOT EXISTS goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    target_value REAL NOT NULL,
+    current_value REAL DEFAULT 0.0,
+    sql_metric_query TEXT NOT NULL,
+    target_date DATE NOT NULL,
+    status TEXT DEFAULT 'Active' -- Active, Met, Missed
+);
+

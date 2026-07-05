@@ -1,0 +1,38 @@
+# Ollama Model Routing & Benchmarking Report
+
+**Tags**: #benchmarking #models #performance #routing
+**Date**: 2026-06-24
+**Source**: Model Router Agent (Task: task-1782243868857)
+
+## Available Models Discovery
+Discovered 8 models currently running on local Ollama:
+
+- **deepseek-r1:8b**
+- **gemma3:4b**
+- **bge-m3:latest**
+- **qwen3:8b**
+- **gemma4:latest**
+- **qwen2.5-coder:7b**
+- **qwen2.5-coder:14b**
+- **gpt-oss:20b**
+
+## Model Latency & Speed Benchmark
+| Model Name | Latency (ms) | Tokens/Sec (est) | Status | Recommendations |
+|------------|--------------|------------------|--------|-----------------|
+| deepseek-r1:8b | Timeout | 0.0 t/s | OFFLINE | Model failed to load |
+| gemma3:4b | 7406 ms | 1.4 t/s | ACTIVE | Fast general tasks |
+| bge-m3:latest | - | - | SKIP | Embedding model, skip |
+| qwen3:8b | 37375 ms | 0.3 t/s | ACTIVE | General purpose tasks |
+| gemma4:latest | 26567 ms | 0.4 t/s | ACTIVE | General purpose tasks |
+| qwen2.5-coder:7b | 6559 ms | 1.5 t/s | ACTIVE | SQL & Code generation (High) |
+| qwen2.5-coder:14b | 11605 ms | 0.9 t/s | ACTIVE | SQL & Code generation (High) |
+| gpt-oss:20b | 22469 ms | 0.4 t/s | ACTIVE | General purpose tasks |
+
+## Optimal Task Routing Recommendations
+- **ANOMALY_DETECTOR**: Use `qwen2.5-coder:7b` or `qwen2.5-coder:14b` for high accuracy SQL generation.
+- **MARKET_ANALYZER**: Use `qwen2.5-coder:7b` or `qwen3:8b` for numeric calculation and analysis.
+- **WEB_INTELLIGENCE**: Use `gemma3:4b` or `deepseek-r1:8b` for summarizing long articles.
+- **OUTREACH_SPECIALIST**: Use `deepseek-r1:8b` for creative sales email generation.
+- **IMAGE_ANALYZER**: Use `llava:latest` or other vision-multimodal models for diagnostic photo checks.
+
+Recommend updating the Model Intelligence card settings in the Dashboard to map tasks accordingly.
