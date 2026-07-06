@@ -4,13 +4,6 @@ A local-first, AI-powered natural language interface for structured farm databas
 
 ---
 
-## 🎬 Demo
-
-<video src="demo.mp4" controls width="100%"></video>
-
-> Click the video above to see the full demo — from question input to generated SQL and plain-English answer.
-
----
 
 ## Screenshots
 
