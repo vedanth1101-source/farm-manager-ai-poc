@@ -5,25 +5,6 @@ A local-first, AI-powered natural language interface for structured farm databas
 ---
 
 
-## Screenshots
-
-### 1. Natural Language Query Interface (AI Mode)
-The interface is clean and responsive. Users can type questions or select sample queries.
-![Natural Language Query Interface](screenshots/ai-query.png)
-
-### 2. Tabular Result Rendering
-Multi-record datasets are rendered in a clean, borders-aligned HTML table with zebra striping.
-![Tabular Result Rendering](screenshots/list-animals.png)
-
-### 3. Template Fallback Mode
-If Ollama is offline or fails, the application falls back to a deterministic, regex-based matching engine.
-![Template Fallback Mode](screenshots/template-fallback.png)
-
-### 4. Telemetry API Endpoint
-In-memory performance metrics (successes, fallbacks, and failures) are tracked in real-time.
-![Telemetry API Endpoint](screenshots/telemetry.png)
-
----
 
 ## What It Does
 
