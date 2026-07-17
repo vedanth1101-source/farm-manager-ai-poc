@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   queryBackend, 
   getTelemetry, 
@@ -69,6 +69,7 @@ const App = () => {
   const [selectedNoteContent, setSelectedNoteContent] = useState('');
   const [pendingNotes, setPendingNotes] = useState([]);
   const [selectedPendingNote, setSelectedPendingNote] = useState(null);
+  const selectedPendingNoteRef = useRef(null);
   const [pendingNoteTitle, setPendingNoteTitle] = useState('');
   const [pendingNoteContent, setPendingNoteContent] = useState('');
   const [lintedContent, setLintedContent] = useState('');
@@ -90,18 +91,15 @@ const App = () => {
   const [costReport, setCostReportState] = useState({ totalCost: 0.0, totalTokens: 0, byTask: [], byModel: [], history: [] });
   const [imagePath, setImagePath] = useState('');
 
-  useEffect(() => {
-    loadAllData();
-  }, []);
-
-  const loadKbData = async () => {
+  const loadKbData = useCallback(async () => {
     try {
       const appNotes = await getApprovedNotes();
       setApprovedNotes(appNotes);
       const pendNotes = await getPendingNotes();
       setPendingNotes(pendNotes);
-      if (pendNotes.length > 0 && !selectedPendingNote) {
+      if (pendNotes.length > 0 && !selectedPendingNoteRef.current) {
         setSelectedPendingNote(pendNotes[0]);
+        selectedPendingNoteRef.current = pendNotes[0];
         setPendingNoteContent(pendNotes[0].content);
         // Extract a clean title suggestion from the filename
         const cleanTitle = pendNotes[0].filename
@@ -121,9 +119,9 @@ const App = () => {
     } catch (e) {
       console.error("Failed to load KB data", e);
     }
-  };
+  }, []);
 
-  const loadCostData = async () => {
+  const loadCostData = useCallback(async () => {
     try {
       const models = await getAvailableModels();
       setAvailableModelsState(models);
@@ -134,7 +132,7 @@ const App = () => {
     } catch (e) {
       console.error("Failed to load model and cost telemetry", e);
     }
-  };
+  }, []);
 
   const handleUpdateRouting = async (taskName, modelName) => {
     try {
@@ -146,7 +144,7 @@ const App = () => {
     }
   };
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     try {
       const telData = await getTelemetry();
       setTelemetry(telData);
@@ -168,7 +166,11 @@ const App = () => {
     } catch (e) {
       console.error("Failed to load initial data", e);
     }
-  };
+  }, [loadKbData, loadCostData]);
+
+  useEffect(() => {
+    loadAllData();
+  }, [loadAllData]);
 
   const handleAsk = async () => {
     if (!question.trim()) return;
@@ -312,6 +314,7 @@ const App = () => {
 
   const handleSelectPendingNote = (note) => {
     setSelectedPendingNote(note);
+    selectedPendingNoteRef.current = note;
     setPendingNoteContent(note.content);
     setLintedContent('');
     const cleanTitle = note.filename
@@ -327,8 +330,9 @@ const App = () => {
     if (window.confirm(`Are you sure you want to delete pending file "${filename}"?`)) {
       try {
         await deletePendingNote(filename);
-        if (selectedPendingNote && selectedPendingNote.filename === filename) {
+        if (selectedPendingNoteRef.current && selectedPendingNoteRef.current.filename === filename) {
           setSelectedPendingNote(null);
+          selectedPendingNoteRef.current = null;
           setPendingNoteContent('');
           setPendingNoteTitle('');
           setLintedContent('');
@@ -341,11 +345,11 @@ const App = () => {
   };
 
   const handleLintNote = async () => {
-    if (!selectedPendingNote) return;
+    if (!selectedPendingNoteRef.current) return;
     setKbActionLoading(true);
     setLintedContent('');
     try {
-      const res = await lintPendingNote(selectedPendingNote.filename);
+      const res = await lintPendingNote(selectedPendingNoteRef.current.filename);
       setLintedContent(res.content || '');
       // Try to parse out the title from '# Title' header
       const titleMatch = res.content.match(/^#\s+(.+)$/m);
@@ -359,7 +363,7 @@ const App = () => {
   };
 
   const handleApproveNote = async () => {
-    if (!selectedPendingNote) return;
+    if (!selectedPendingNoteRef.current) return;
     const finalContent = lintedContent || pendingNoteContent;
     if (!finalContent.trim()) {
       alert("Note content cannot be empty.");
@@ -371,8 +375,9 @@ const App = () => {
     }
     setKbActionLoading(true);
     try {
-      await approvePendingNote(selectedPendingNote.filename, pendingNoteTitle, finalContent);
+      await approvePendingNote(selectedPendingNoteRef.current.filename, pendingNoteTitle, finalContent);
       setSelectedPendingNote(null);
+      selectedPendingNoteRef.current = null;
       setPendingNoteContent('');
       setPendingNoteTitle('');
       setLintedContent('');

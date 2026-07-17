@@ -31,8 +31,20 @@ public class BackgroundAgentService {
     private final ModelRegistryService modelRegistryService;
     private final HttpClient httpClient;
 
-    private static final String KB_DIR = "C:\\Users\\VEDANTH\\farm-manager-ai\\farm_knowledge_base";
+    private static final String KB_DIR = resolveKbDir();
     private final File pendingDir = new File(KB_DIR, "pending");
+
+    private static String resolveKbDir() {
+        File relDir = new File("../farm_knowledge_base");
+        if (relDir.exists() && relDir.isDirectory()) {
+            return relDir.getAbsolutePath();
+        }
+        File rootDir = new File("farm_knowledge_base");
+        if (rootDir.exists() && rootDir.isDirectory()) {
+            return rootDir.getAbsolutePath();
+        }
+        return "C:\\Users\\VEDANTH\\farm-manager-ai\\farm_knowledge_base";
+    }
 
     // Task history log
     private final List<Map<String, Object>> tasks = new CopyOnWriteArrayList<>();

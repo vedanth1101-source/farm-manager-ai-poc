@@ -15,9 +15,11 @@ public class GoalsService {
 
     private static final Logger log = LoggerFactory.getLogger(GoalsService.class);
     private final JdbcTemplate jdbcTemplate;
+    private final OllamaQueryService ollamaQueryService;
 
-    public GoalsService(JdbcTemplate jdbcTemplate) {
+    public GoalsService(JdbcTemplate jdbcTemplate, OllamaQueryService ollamaQueryService) {
         this.jdbcTemplate = jdbcTemplate;
+        this.ollamaQueryService = ollamaQueryService;
     }
 
     public List<GoalDTO> getEvaluatedGoals() {
@@ -50,6 +52,14 @@ public class GoalsService {
     public void evaluateGoal(GoalDTO goal) {
         try {
             log.info("Evaluating goal: '{}' with query: '{}'", goal.getName(), goal.getSqlMetricQuery());
+            if (goal.getSqlMetricQuery() != null && !ollamaQueryService.isSqlSafe(goal.getSqlMetricQuery())) {
+                log.warn("Skipping evaluation of goal '{}': SQL query failed safety check.", goal.getName());
+                String updateSql = "UPDATE goals SET status = ? WHERE id = ?";
+                jdbcTemplate.update(updateSql, "Failed", goal.getId());
+                goal.setStatus("Failed");
+                return;
+            }
+
             Double computedValue = jdbcTemplate.queryForObject(goal.getSqlMetricQuery(), Double.class);
             if (computedValue == null) {
                 computedValue = 0.0;
@@ -83,6 +93,10 @@ public class GoalsService {
 
     public void addGoal(GoalDTO goal) {
         log.info("GoalsService: Creating new goal: '{}'", goal.getName());
+        if (goal.getSqlMetricQuery() != null && !ollamaQueryService.isSqlSafe(goal.getSqlMetricQuery())) {
+            log.error("Failed to add goal '{}': SQL query failed safety check.", goal.getName());
+            throw new SecurityException("Goal SQL query failed safety check (Read-only SELECT/WITH queries only).");
+        }
         String insertSql = "INSERT INTO goals (name, target_value, sql_metric_query, target_date, status) VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(insertSql, goal.getName(), goal.getTargetValue(), goal.getSqlMetricQuery(), goal.getTargetDate(), "Active");
     }

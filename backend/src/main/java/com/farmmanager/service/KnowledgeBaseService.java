@@ -29,10 +29,31 @@ public class KnowledgeBaseService {
     private static final String OLLAMA_URL = "http://localhost:11434/api/generate";
     private static final String MODEL_NAME = "qwen2.5-coder:7b";
 
-    private static final String KB_DIR = "C:\\Users\\VEDANTH\\farm-manager-ai\\farm_knowledge_base";
+    private static final String KB_DIR = resolveKbDir();
     private final File vaultDir = new File(KB_DIR, "vault");
     private final File pendingDir = new File(KB_DIR, "pending");
     private final File soulFile = new File(KB_DIR, "farm_soul.md");
+
+    private static String resolveKbDir() {
+        File relDir = new File("../farm_knowledge_base");
+        if (relDir.exists() && relDir.isDirectory()) {
+            return relDir.getAbsolutePath();
+        }
+        File rootDir = new File("farm_knowledge_base");
+        if (rootDir.exists() && rootDir.isDirectory()) {
+            return rootDir.getAbsolutePath();
+        }
+        return "C:\\Users\\VEDANTH\\farm-manager-ai\\farm_knowledge_base";
+    }
+
+    private void validateFilename(String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            throw new IllegalArgumentException("Filename cannot be empty");
+        }
+        if (filename.contains("..") || filename.contains("/") || filename.contains("\\") || filename.contains("%") || filename.contains(":")) {
+            throw new SecurityException("Path traversal or invalid characters detected in filename: " + filename);
+        }
+    }
 
     public KnowledgeBaseService(ObjectMapper objectMapper, TelemetryService telemetryService) {
         this.objectMapper = objectMapper;
@@ -226,6 +247,7 @@ public class KnowledgeBaseService {
     }
 
     public String getApprovedNoteContent(String filename) {
+        validateFilename(filename);
         File file = new File(vaultDir, filename);
         if (!file.exists()) {
             throw new IllegalArgumentException("Note " + filename + " does not exist.");
@@ -239,6 +261,7 @@ public class KnowledgeBaseService {
     }
 
     public void deleteApprovedNote(String filename) {
+        validateFilename(filename);
         File file = new File(vaultDir, filename);
         if (file.exists()) {
             file.delete();
@@ -273,6 +296,7 @@ public class KnowledgeBaseService {
     }
 
     public void deletePendingNote(String filename) {
+        validateFilename(filename);
         File file = new File(pendingDir, filename);
         if (file.exists()) {
             file.delete();
@@ -286,6 +310,7 @@ public class KnowledgeBaseService {
      * Use Ollama to clean up, structure, and format raw voice transcripts or notes.
      */
     public String lintPendingNote(String filename) throws Exception {
+        validateFilename(filename);
         File file = new File(pendingDir, filename);
         if (!file.exists()) {
             throw new IllegalArgumentException("Pending file does not exist: " + filename);
@@ -320,6 +345,9 @@ public class KnowledgeBaseService {
      * Save the polished content to the approved vault and delete the original pending file.
      */
     public void approveNote(String originalFilename, String title, String content) throws IOException {
+        if (originalFilename != null && !originalFilename.isEmpty()) {
+            validateFilename(originalFilename);
+        }
         log.info("KnowledgeBaseService: Approving note '{}' as '{}.md'...", originalFilename, title);
         
         // Sanitize title for filename

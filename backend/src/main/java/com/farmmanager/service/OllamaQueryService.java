@@ -185,7 +185,7 @@ public class OllamaQueryService {
         return cleaned;
     }
 
-    private boolean isSqlSafe(String sql) {
+    public boolean isSqlSafe(String sql) {
         String trimmed = sql.trim().replaceAll("\\s+", " ").toUpperCase();
         
         // Safety Rule: must start with SELECT or WITH
