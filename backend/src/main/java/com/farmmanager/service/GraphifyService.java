@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,12 +24,33 @@ public class GraphifyService {
     private static final Logger log = LoggerFactory.getLogger(GraphifyService.class);
     private final ObjectMapper objectMapper;
 
-    private static final String PYTHON_PATH = "C:\\Users\\VEDANTH\\AppData\\Local\\Programs\\Python\\Python311\\python.exe";
-    private static final String PROJECT_ROOT = "C:\\Users\\VEDANTH\\farm-manager-ai";
-    private static final String MANIFEST_PATH = PROJECT_ROOT + "\\graphify-out\\manifest.json";
+    /**
+     * Interpreter used to run the graphify CLI. Defaults to whatever `python`
+     * resolves to on PATH; override with graphify.python-path when the
+     * interpreter lives outside PATH.
+     *
+     * Must remain a real executable — pointing this at a .bat or .cmd would
+     * make Windows route the call through cmd.exe, at which point the argument
+     * array below would no longer be injection-safe.
+     */
+    private final String pythonPath;
 
-    public GraphifyService(ObjectMapper objectMapper) {
+    /** Project root the graphify CLI runs against. Defaults to the working directory. */
+    private final Path projectRoot;
+
+    public GraphifyService(
+            ObjectMapper objectMapper,
+            @Value("${graphify.python-path:python}") String pythonPath,
+            @Value("${graphify.project-root:}") String projectRoot) {
         this.objectMapper = objectMapper;
+        this.pythonPath = pythonPath;
+        this.projectRoot = (projectRoot == null || projectRoot.isBlank())
+                ? Paths.get("").toAbsolutePath()
+                : Paths.get(projectRoot).toAbsolutePath();
+    }
+
+    private String manifestPath() {
+        return projectRoot.resolve("graphify-out").resolve("manifest.json").toString();
     }
 
     /**
@@ -36,9 +60,9 @@ public class GraphifyService {
         log.info("GraphifyService: Parsing manifest.json for project files...");
         List<String> projectFiles = new ArrayList<>();
         try {
-            File manifestFile = new File(MANIFEST_PATH);
+            File manifestFile = new File(manifestPath());
             if (!manifestFile.exists()) {
-                log.warn("manifest.json not found at: {}", MANIFEST_PATH);
+                log.warn("manifest.json not found at: {}", manifestPath());
                 return projectFiles;
             }
 
@@ -64,20 +88,21 @@ public class GraphifyService {
      */
     public String queryGraph(String question) {
         log.info("GraphifyService: Querying graph with question: '{}'", question);
-        // Sanitize question input to prevent command injection
-        String sanitized = question.replace("\"", "\\\"");
+        // No shell escaping needed: ProcessBuilder receives an argument array,
+        // which is passed to the OS directly without shell interpretation.
+        // Escaping quotes here would corrupt legitimate input, not protect it.
 
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    PYTHON_PATH,
+                    pythonPath,
                     "-m",
                     "graphify",
                     "query",
-                    sanitized,
+                    question,
                     "--graph",
                     "graphify-out/graph.json"
             );
-            pb.directory(new File(PROJECT_ROOT));
+            pb.directory(projectRoot.toFile());
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
@@ -104,20 +129,19 @@ public class GraphifyService {
      */
     public String getAffectedNodes(String node) {
         log.info("GraphifyService: Inspecting affected nodes for: '{}'", node);
-        // Sanitize node string
-        String sanitized = node.replace("\"", "\\\"");
+        // See queryGraph(): the argument array is not shell-interpreted.
 
         try {
             ProcessBuilder pb = new ProcessBuilder(
-                    PYTHON_PATH,
+                    pythonPath,
                     "-m",
                     "graphify",
                     "affected",
-                    sanitized,
+                    node,
                     "--graph",
                     "graphify-out/graph.json"
             );
-            pb.directory(new File(PROJECT_ROOT));
+            pb.directory(projectRoot.toFile());
             pb.redirectErrorStream(true);
 
             Process process = pb.start();
