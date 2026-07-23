@@ -43,7 +43,14 @@ public class KnowledgeBaseService {
         if (rootDir.exists() && rootDir.isDirectory()) {
             return rootDir.getAbsolutePath();
         }
-        return "C:\\Users\\VEDANTH\\farm-manager-ai\\farm_knowledge_base";
+        // Fall back to a path relative to the working directory rather than a
+        // machine-specific absolute path. Set FARM_KB_DIR to override when the
+        // knowledge base lives outside the project tree.
+        String override = System.getenv("FARM_KB_DIR");
+        if (override != null && !override.isBlank()) {
+            return new File(override).getAbsolutePath();
+        }
+        return new File("farm_knowledge_base").getAbsolutePath();
     }
 
     private void validateFilename(String filename) {

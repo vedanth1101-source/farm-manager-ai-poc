@@ -43,7 +43,13 @@ public class BackgroundAgentService {
         if (rootDir.exists() && rootDir.isDirectory()) {
             return rootDir.getAbsolutePath();
         }
-        return "C:\\Users\\VEDANTH\\farm-manager-ai\\farm_knowledge_base";
+        // Relative fallback rather than a machine-specific absolute path.
+        // Set FARM_KB_DIR to override.
+        String override = System.getenv("FARM_KB_DIR");
+        if (override != null && !override.isBlank()) {
+            return new File(override).getAbsolutePath();
+        }
+        return new File("farm_knowledge_base").getAbsolutePath();
     }
 
     // Task history log
@@ -590,7 +596,7 @@ public class BackgroundAgentService {
         try {
             String resolvedPath = imagePath;
             if (resolvedPath == null || resolvedPath.trim().isEmpty()) {
-                resolvedPath = "C:\\Users\\VEDANTH\\farm-manager-ai\\screenshots\\list-animals.png";
+                resolvedPath = new File("screenshots/list-animals.png").getAbsolutePath();
             }
 
             File imgFile = new File(resolvedPath);

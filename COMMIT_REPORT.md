@@ -11,7 +11,7 @@
 | **Commit Hash** | `3d9d7b5c477a017345def1f55a932d3a37954b40` |
 | **Short Hash** | `3d9d7b5c` |
 | **Branch** | `main` |
-| **Author** | Vedanth <vedanth1101@gmail.com> |
+| **Author** | Vedanth M S |
 | **Date** | Sat Jun 13 15:47:29 2026 +0530 |
 | **Message** | `Farm Manager AI MVP` |
 | **Files Committed** | 26 |
